@@ -23,8 +23,43 @@
             <el-descriptions-item :label="$t('vehicleRecords.parkingDurationMinutes')">
               {{ record.parkingDurationMinutes || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item :label="$t('vehicleRecords.parkingFeeCents')">
-              {{ record.parkingFeeCents ? record.parkingFeeCents + ' ¢' : '-' }}
+            <el-descriptions-item label="停车费">
+              <span v-if="record.parkingFeeCents" style="font-size: 18px; font-weight: bold; color: #E6A23C;">
+                ${{ (record.parkingFeeCents / 100).toFixed(2) }}
+              </span>
+              <span v-else>-</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="支付状态">
+              <el-tag v-if="record.paymentStatus === 'paid'" type="success" size="medium">已支付</el-tag>
+              <el-tag v-else-if="record.paymentStatus === 'pending'" type="warning" size="medium">待支付</el-tag>
+              <el-tag v-else-if="record.parkingFeeCents > 0" type="info" size="medium">未支付</el-tag>
+              <span v-else>-</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="支付方式">
+              <span v-if="record.squarePaymentId">
+                <el-tag type="primary" size="small">终端支付</el-tag>
+                <span style="margin-left: 10px; color: #909399; font-size: 12px;">
+                  支付ID: {{ record.squarePaymentId }}
+                </span>
+              </span>
+              <span v-else-if="record.onlinePaymentUrl && record.paymentStatus === 'paid'">
+                <el-tag type="success" size="small">在线支付</el-tag>
+              </span>
+              <span v-else>-</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="在线支付" v-if="record.onlinePaymentUrl">
+              <el-button
+                v-if="record.paymentStatus !== 'paid'"
+                type="success"
+                size="small"
+                icon="el-icon-bank-card"
+                @click="handleOnlinePayment"
+              >
+                立即支付
+              </el-button>
+              <span v-else style="color: #67C23A;">
+                <i class="el-icon-circle-check"></i> 已完成支付
+              </span>
             </el-descriptions-item>
             <el-descriptions-item :label="$t('vehicleRecords.createdAt')">
               {{ formatDateTime(record.createdAt) }}
@@ -193,6 +228,14 @@ export default {
     },
     goBack() {
       this.$router.back()
+    },
+    handleOnlinePayment() {
+      if (this.record.onlinePaymentUrl) {
+        window.open(this.record.onlinePaymentUrl, '_blank')
+        this.$message.success('已打开支付页面，请在新窗口中完成支付')
+      } else {
+        this.$message.error('支付链接不可用')
+      }
     },
     getSnapshotUrl(parkingLotCode, filename) {
       return getSnapshotUrl(parkingLotCode, filename)

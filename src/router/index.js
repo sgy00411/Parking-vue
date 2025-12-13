@@ -10,13 +10,13 @@ const routes = [
     component: () => import('@/views/Dashboard.vue')
   },
   {
-    path: '/parking-records',
-    name: 'ParkingRecords',
+    path: '/vehicle-records',
+    name: 'VehicleRecords',
     component: () => import('@/views/VehicleRecords.vue')
   },
   {
-    path: '/parking-records/:id',
-    name: 'ParkingRecordDetail',
+    path: '/vehicle-records/:id',
+    name: 'VehicleRecordDetail',
     component: () => import('@/views/VehicleRecordDetail.vue')
   },
   {

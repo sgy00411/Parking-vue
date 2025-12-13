@@ -36,7 +36,7 @@
                 <i class="el-icon-office-building"></i>
                 <span>{{ $t('nav.parkingManagement') }}</span>
               </template>
-              <el-menu-item index="/parking-records">{{ $t('nav.parkingRecords') }}</el-menu-item>
+              <el-menu-item index="/vehicle-records">{{ $t('nav.parkingRecords') }}</el-menu-item>
             </el-submenu>
             <el-submenu index="square">
               <template slot="title">

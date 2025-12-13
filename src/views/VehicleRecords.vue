@@ -152,10 +152,36 @@
             {{ scope.row.exitCameraName || '-' }}
           </template>
         </el-table-column>
-        <el-table-column :label="$t('common.detail')" width="100" fixed="right">
+        <el-table-column label="停车费" width="100">
+          <template slot-scope="scope">
+            <span v-if="scope.row.parkingFeeCents">
+              ${{ (scope.row.parkingFeeCents / 100).toFixed(2) }}
+            </span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="支付状态" width="100">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.paymentStatus === 'paid'" type="success">已支付</el-tag>
+            <el-tag v-else-if="scope.row.paymentStatus === 'pending'" type="warning">待支付</el-tag>
+            <el-tag v-else-if="scope.row.parkingFeeCents > 0" type="info">未支付</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('common.detail')" width="200" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" size="small" icon="el-icon-view" @click="handleViewDetail(scope.row.id)">
               {{ $t('common.detail') }}
+            </el-button>
+            <el-button
+              v-if="scope.row.onlinePaymentUrl && scope.row.paymentStatus !== 'paid'"
+              type="text"
+              size="small"
+              icon="el-icon-bank-card"
+              @click="handleOnlinePayment(scope.row)"
+              style="color: #67C23A;"
+            >
+              在线支付
             </el-button>
           </template>
         </el-table-column>
@@ -263,6 +289,15 @@ export default {
     },
     handleViewDetail(id) {
       this.$router.push(`/vehicle-records/${id}`)
+    },
+    handleOnlinePayment(row) {
+      // 在新窗口打开Square支付页面
+      if (row.onlinePaymentUrl) {
+        window.open(row.onlinePaymentUrl, '_blank')
+        this.$message.success('已打开支付页面，请在新窗口中完成支付')
+      } else {
+        this.$message.error('支付链接不可用')
+      }
     },
     formatDateTime(datetime) {
       if (!datetime) return '-'
