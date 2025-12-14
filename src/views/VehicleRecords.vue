@@ -168,10 +168,20 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('common.detail')" width="200" fixed="right">
+        <el-table-column :label="$t('common.detail')" width="280" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" size="small" icon="el-icon-view" @click="handleViewDetail(scope.row.id)">
               {{ $t('common.detail') }}
+            </el-button>
+            <el-button
+              v-if="scope.row.parkingFeeCents > 0 && scope.row.paymentStatus !== 'paid'"
+              type="text"
+              size="small"
+              icon="el-icon-mobile-phone"
+              @click="handleTerminalPayment(scope.row)"
+              style="color: #409EFF;"
+            >
+              终端支付
             </el-button>
             <el-button
               v-if="scope.row.onlinePaymentUrl && scope.row.paymentStatus !== 'paid'"
@@ -203,7 +213,7 @@
 </template>
 
 <script>
-import { getVehicleRecords, getStatistics } from '@/api/vehicleRecords'
+import { getVehicleRecords, getStatistics, initiatePayment } from '@/api/vehicleRecords'
 
 export default {
   name: 'VehicleRecords',
@@ -289,6 +299,80 @@ export default {
     },
     handleViewDetail(id) {
       this.$router.push(`/vehicle-records/${id}`)
+    },
+    async handleTerminalPayment(row) {
+      try {
+        const confirmResult = await this.$confirm(
+          `确认发起终端支付?\n金额: $${(row.parkingFeeCents / 100).toFixed(2)}\n\n是否同时生成在线支付链接?`,
+          '终端支付',
+          {
+            confirmButtonText: '仅终端支付',
+            cancelButtonText: '终端+在线',
+            distinguishCancelAndClose: true,
+            type: 'info'
+          }
+        ).then(() => 'terminal_only')
+          .catch((action) => {
+            if (action === 'cancel') {
+              return 'both'
+            }
+            return null
+          })
+
+        if (!confirmResult) {
+          return
+        }
+
+        const loading = this.$loading({
+          lock: true,
+          text: '正在发起支付...',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+
+        try {
+          const response = await initiatePayment(row.id, row.exitPaymentDeviceId)
+
+          if (response.success) {
+            if (confirmResult === 'both') {
+              this.$message.success(response.message)
+
+              // 如果在线支付成功,询问是否打开支付页面
+              if (response.online.success && response.online.paymentUrl) {
+                const openPayment = await this.$confirm(
+                  '在线支付链接已生成,是否立即打开支付页面?',
+                  '提示',
+                  {
+                    confirmButtonText: '打开',
+                    cancelButtonText: '稍后',
+                    type: 'info'
+                  }
+                ).catch(() => false)
+
+                if (openPayment) {
+                  window.open(response.online.paymentUrl, '_blank')
+                }
+              }
+            } else {
+              if (response.terminal.success) {
+                this.$message.success('终端支付已发起')
+              } else {
+                this.$message.error('终端支付发起失败')
+              }
+            }
+
+            // 刷新列表
+            this.loadData()
+          } else {
+            this.$message.error(response.message || '发起支付失败')
+          }
+        } finally {
+          loading.close()
+        }
+      } catch (error) {
+        console.error('终端支付失败:', error)
+        this.$message.error('终端支付失败: ' + (error.message || '未知错误'))
+      }
     },
     handleOnlinePayment(row) {
       // 在新窗口打开Square支付页面

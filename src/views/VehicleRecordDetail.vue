@@ -47,17 +47,30 @@
               </span>
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="在线支付" v-if="record.onlinePaymentUrl">
+            <el-descriptions-item label="支付操作" v-if="record.parkingFeeCents > 0 && record.paymentStatus !== 'paid'">
+              <!-- 终端支付按钮 -->
               <el-button
-                v-if="record.paymentStatus !== 'paid'"
+                type="primary"
+                size="small"
+                icon="el-icon-mobile-phone"
+                @click="handleTerminalPayment"
+              >
+                终端支付
+              </el-button>
+              <!-- 在线支付按钮 -->
+              <el-button
+                v-if="record.onlinePaymentUrl"
                 type="success"
                 size="small"
                 icon="el-icon-bank-card"
                 @click="handleOnlinePayment"
+                style="margin-left: 10px;"
               >
-                立即支付
+                在线支付
               </el-button>
-              <span v-else style="color: #67C23A;">
+            </el-descriptions-item>
+            <el-descriptions-item label="支付状态" v-else-if="record.paymentStatus === 'paid'">
+              <span style="color: #67C23A;">
                 <i class="el-icon-circle-check"></i> 已完成支付
               </span>
             </el-descriptions-item>
@@ -193,7 +206,7 @@
 </template>
 
 <script>
-import { getVehicleRecordDetail, getSnapshotUrl } from '@/api/vehicleRecords'
+import { getVehicleRecordDetail, getSnapshotUrl, initiatePayment } from '@/api/vehicleRecords'
 
 export default {
   name: 'VehicleRecordDetail',
@@ -228,6 +241,80 @@ export default {
     },
     goBack() {
       this.$router.back()
+    },
+    async handleTerminalPayment() {
+      try {
+        const confirmResult = await this.$confirm(
+          `确认发起终端支付?\n金额: $${(this.record.parkingFeeCents / 100).toFixed(2)}\n\n是否同时生成在线支付链接?`,
+          '终端支付',
+          {
+            confirmButtonText: '仅终端支付',
+            cancelButtonText: '终端+在线',
+            distinguishCancelAndClose: true,
+            type: 'info'
+          }
+        ).then(() => 'terminal_only')
+          .catch((action) => {
+            if (action === 'cancel') {
+              return 'both'
+            }
+            return null
+          })
+
+        if (!confirmResult) {
+          return
+        }
+
+        const loading = this.$loading({
+          lock: true,
+          text: '正在发起支付...',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+
+        try {
+          const response = await initiatePayment(this.record.id, this.record.exitPaymentDeviceId)
+
+          if (response.success) {
+            if (confirmResult === 'both') {
+              this.$message.success(response.message)
+            } else {
+              if (response.terminal.success) {
+                this.$message.success('终端支付已发起')
+              } else {
+                this.$message.error('终端支付发起失败')
+              }
+            }
+
+            // 刷新详情页数据
+            await this.loadDetail()
+
+            // 如果在线支付成功,询问是否打开支付页面
+            if (confirmResult === 'both' && response.online.success && response.online.paymentUrl) {
+              const openPayment = await this.$confirm(
+                '在线支付链接已生成,是否立即打开支付页面?',
+                '提示',
+                {
+                  confirmButtonText: '打开',
+                  cancelButtonText: '稍后',
+                  type: 'info'
+                }
+              ).catch(() => false)
+
+              if (openPayment) {
+                window.open(response.online.paymentUrl, '_blank')
+              }
+            }
+          } else {
+            this.$message.error(response.message || '发起支付失败')
+          }
+        } finally {
+          loading.close()
+        }
+      } catch (error) {
+        console.error('终端支付失败:', error)
+        this.$message.error('终端支付失败: ' + (error.message || '未知错误'))
+      }
     },
     handleOnlinePayment() {
       if (this.record.onlinePaymentUrl) {

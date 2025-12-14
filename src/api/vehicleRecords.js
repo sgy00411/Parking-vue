@@ -38,3 +38,16 @@ export function getStatistics(params) {
 export function getSnapshotUrl(parkingLotCode, filename) {
   return `/api/vehicle-records/snapshot/${parkingLotCode}/${filename}`
 }
+
+/**
+ * 手动发起双通道支付(终端 + 在线)
+ */
+export function initiatePayment(id, paymentDeviceId) {
+  return request({
+    url: `/vehicle-records/${id}/initiate-payment`,
+    method: 'post',
+    params: {
+      paymentDeviceId
+    }
+  })
+}
