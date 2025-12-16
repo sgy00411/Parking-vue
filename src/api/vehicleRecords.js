@@ -51,3 +51,13 @@ export function initiatePayment(id, paymentDeviceId) {
     }
   })
 }
+
+/**
+ * 发起LCD支付 - 在LCD屏幕显示支付二维码
+ */
+export function sendLcdPayment(id) {
+  return request({
+    url: `/vehicle-records/${id}/lcd-payment`,
+    method: 'post'
+  })
+}

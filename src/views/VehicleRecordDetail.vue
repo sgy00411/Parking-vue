@@ -68,6 +68,16 @@
               >
                 在线支付
               </el-button>
+              <!-- LCD支付按钮 -->
+              <el-button
+                type="warning"
+                size="small"
+                icon="el-icon-monitor"
+                @click="handleLcdPayment"
+                style="margin-left: 10px;"
+              >
+                LCD支付
+              </el-button>
             </el-descriptions-item>
             <el-descriptions-item label="支付状态" v-else-if="record.paymentStatus === 'paid'">
               <span style="color: #67C23A;">
@@ -206,7 +216,7 @@
 </template>
 
 <script>
-import { getVehicleRecordDetail, getSnapshotUrl, initiatePayment } from '@/api/vehicleRecords'
+import { getVehicleRecordDetail, getSnapshotUrl, initiatePayment, sendLcdPayment } from '@/api/vehicleRecords'
 
 export default {
   name: 'VehicleRecordDetail',
@@ -273,7 +283,7 @@ export default {
         })
 
         try {
-          const response = await initiatePayment(this.record.id, this.record.exitPaymentDeviceId)
+          const response = await initiatePayment(this.record.id, this.record.paymentDeviceId)
 
           if (response.success) {
             if (confirmResult === 'both') {
@@ -322,6 +332,31 @@ export default {
         this.$message.success('已打开支付页面，请在新窗口中完成支付')
       } else {
         this.$message.error('支付链接不可用')
+      }
+    },
+    async handleLcdPayment() {
+      try {
+        const loading = this.$loading({
+          lock: true,
+          text: '正在发送LCD支付界面...',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+
+        try {
+          const response = await sendLcdPayment(this.record.id)
+
+          if (response.success) {
+            this.$message.success('LCD支付界面已发送到设备')
+          } else {
+            this.$message.error(response.message || 'LCD支付发送失败')
+          }
+        } finally {
+          loading.close()
+        }
+      } catch (error) {
+        console.error('LCD支付失败:', error)
+        this.$message.error('LCD支付失败: ' + (error.message || '未知错误'))
       }
     },
     getSnapshotUrl(parkingLotCode, filename) {
