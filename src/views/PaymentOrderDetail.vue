@@ -1,24 +1,24 @@
 <template>
   <div class="payment-order-detail">
-    <el-page-header @back="goBack" content="支付记录详情"></el-page-header>
+    <el-page-header @back="goBack" :content="$t('paymentOrders.detailTitle')"></el-page-header>
 
     <el-card v-loading="loading" class="detail-card">
       <div v-if="record">
         <!-- 基本信息 -->
         <div class="section">
-          <h3 class="section-title">基本信息</h3>
+          <h3 class="section-title">{{ $t('paymentOrders.basicInfo') }}</h3>
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="记录ID">{{ record.id }}</el-descriptions-item>
-            <el-descriptions-item label="Square支付ID">
+            <el-descriptions-item :label="$t('paymentOrders.recordId')">{{ record.id }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('paymentOrders.squarePaymentId')">
               {{ record.squarePaymentId || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="订单ID">
+            <el-descriptions-item :label="$t('paymentOrders.orderId')">
               {{ record.orderId || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="Checkout ID">
+            <el-descriptions-item :label="$t('paymentOrders.checkoutId')">
               {{ record.checkoutId || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="关联车辆记录ID">
+            <el-descriptions-item :label="$t('paymentOrders.vehicleRecordId')">
               <span v-if="record.vehicleRecordId">
                 <el-link type="primary" @click="goToVehicleRecord(record.vehicleRecordId)">
                   {{ record.vehicleRecordId }}
@@ -26,21 +26,21 @@
               </span>
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="支付状态">
-              <el-tag v-if="record.status === 'COMPLETED'" type="success" size="medium">已完成</el-tag>
-              <el-tag v-else-if="record.status === 'PENDING'" type="warning" size="medium">待处理</el-tag>
-              <el-tag v-else-if="record.status === 'APPROVED'" type="info" size="medium">已批准</el-tag>
-              <el-tag v-else-if="record.status === 'FAILED'" type="danger" size="medium">已失败</el-tag>
-              <el-tag v-else-if="record.status === 'CANCELED'" type="info" size="medium">已取消</el-tag>
+            <el-descriptions-item :label="$t('paymentOrders.status')">
+              <el-tag v-if="record.status === 'COMPLETED'" type="success" size="medium">{{ $t('paymentOrders.statusOptions.completed') }}</el-tag>
+              <el-tag v-else-if="record.status === 'PENDING'" type="warning" size="medium">{{ $t('paymentOrders.statusOptions.pending') }}</el-tag>
+              <el-tag v-else-if="record.status === 'APPROVED'" type="info" size="medium">{{ $t('paymentOrders.statusOptions.approved') }}</el-tag>
+              <el-tag v-else-if="record.status === 'FAILED'" type="danger" size="medium">{{ $t('paymentOrders.statusOptions.failed') }}</el-tag>
+              <el-tag v-else-if="record.status === 'CANCELED'" type="info" size="medium">{{ $t('paymentOrders.statusOptions.canceled') }}</el-tag>
               <el-tag v-else>{{ record.status }}</el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="支付来源">
-              <el-tag v-if="record.paymentSource === 'TERMINAL'" type="primary" size="small">终端支付</el-tag>
-              <el-tag v-else-if="record.paymentSource === 'ONLINE'" type="success" size="small">在线支付</el-tag>
+            <el-descriptions-item :label="$t('paymentOrders.paymentSource')">
+              <el-tag v-if="record.paymentSource === 'TERMINAL'" type="primary" size="small">{{ $t('paymentOrders.paymentSourceOptions.terminal') }}</el-tag>
+              <el-tag v-else-if="record.paymentSource === 'ONLINE'" type="success" size="small">{{ $t('paymentOrders.paymentSourceOptions.online') }}</el-tag>
               <el-tag v-else-if="record.paymentSource" type="info" size="small">{{ record.paymentSource }}</el-tag>
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="备注">
+            <el-descriptions-item :label="$t('paymentOrders.note')">
               {{ record.note || '-' }}
             </el-descriptions-item>
           </el-descriptions>
@@ -48,27 +48,27 @@
 
         <!-- 金额信息 -->
         <div class="section">
-          <h3 class="section-title">金额信息</h3>
+          <h3 class="section-title">{{ $t('paymentOrders.amountInfo') }}</h3>
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="支付金额">
+            <el-descriptions-item :label="$t('paymentOrders.amount')">
               <span v-if="record.amount" style="font-size: 18px; font-weight: bold; color: #E6A23C;">
                 {{ record.currency }} ${{ (record.amount / 100).toFixed(2) }}
               </span>
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="总金额">
+            <el-descriptions-item :label="$t('paymentOrders.totalAmount')">
               <span v-if="record.totalAmount">
                 {{ record.currency }} ${{ (record.totalAmount / 100).toFixed(2) }}
               </span>
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="批准金额">
+            <el-descriptions-item :label="$t('paymentOrders.approvedAmount')">
               <span v-if="record.approvedAmount">
                 {{ record.currency }} ${{ (record.approvedAmount / 100).toFixed(2) }}
               </span>
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="货币">
+            <el-descriptions-item :label="$t('paymentOrders.currency')">
               {{ record.currency || '-' }}
             </el-descriptions-item>
           </el-descriptions>
@@ -76,36 +76,36 @@
 
         <!-- 卡片信息 -->
         <div v-if="record.cardBrand || record.last4" class="section">
-          <h3 class="section-title">卡片信息</h3>
+          <h3 class="section-title">{{ $t('paymentOrders.cardInfo') }}</h3>
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="卡片品牌">
+            <el-descriptions-item :label="$t('paymentOrders.cardBrand')">
               {{ record.cardBrand || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="卡号后4位">
+            <el-descriptions-item :label="$t('paymentOrders.last4')">
               {{ record.last4 ? '****' + record.last4 : '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="卡片类型">
+            <el-descriptions-item :label="$t('paymentOrders.cardType')">
               {{ record.cardType || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="预付卡类型">
+            <el-descriptions-item :label="$t('paymentOrders.prepaidType')">
               {{ record.prepaidType || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="刷卡方式">
+            <el-descriptions-item :label="$t('paymentOrders.entryMethod')">
               {{ record.entryMethod || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="卡片状态">
+            <el-descriptions-item :label="$t('paymentOrders.cardStatus')">
               {{ record.cardStatus || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="CVV状态">
+            <el-descriptions-item :label="$t('paymentOrders.cvvStatus')">
               {{ record.cvvStatus || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="AVS状态">
+            <el-descriptions-item :label="$t('paymentOrders.avsStatus')">
               {{ record.avsStatus || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="BIN">
+            <el-descriptions-item :label="$t('paymentOrders.cardBin')">
               {{ record.cardBin || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="有效期">
+            <el-descriptions-item :label="$t('paymentOrders.cardExpiry')">
               <span v-if="record.cardExpMonth && record.cardExpYear">
                 {{ record.cardExpMonth }}/{{ record.cardExpYear }}
               </span>
@@ -116,18 +116,18 @@
 
         <!-- 设备和位置信息 -->
         <div class="section">
-          <h3 class="section-title">设备和位置信息</h3>
+          <h3 class="section-title">{{ $t('paymentOrders.deviceLocationInfo') }}</h3>
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="位置ID">
+            <el-descriptions-item :label="$t('paymentOrders.locationId')">
               {{ record.locationId || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="设备ID">
+            <el-descriptions-item :label="$t('paymentOrders.deviceId')">
               {{ record.deviceId || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="引用ID">
+            <el-descriptions-item :label="$t('paymentOrders.referenceId')">
               {{ record.referenceId || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="来源类型">
+            <el-descriptions-item :label="$t('paymentOrders.sourceType')">
               {{ record.sourceType || '-' }}
             </el-descriptions-item>
           </el-descriptions>
@@ -135,14 +135,14 @@
 
         <!-- 收据信息 -->
         <div v-if="record.receiptNumber || record.receiptUrl" class="section">
-          <h3 class="section-title">收据信息</h3>
+          <h3 class="section-title">{{ $t('paymentOrders.receiptInfo') }}</h3>
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="收据编号">
+            <el-descriptions-item :label="$t('paymentOrders.receiptNumber')">
               {{ record.receiptNumber || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="收据链接">
+            <el-descriptions-item :label="$t('paymentOrders.receiptUrl')">
               <el-link v-if="record.receiptUrl" :href="record.receiptUrl" target="_blank" type="primary">
-                查看收据
+                {{ $t('paymentOrders.viewReceipt') }}
               </el-link>
               <span v-else>-</span>
             </el-descriptions-item>
@@ -151,18 +151,18 @@
 
         <!-- 时间信息 -->
         <div class="section">
-          <h3 class="section-title">时间信息</h3>
+          <h3 class="section-title">{{ $t('paymentOrders.timeInfo') }}</h3>
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="创建时间">
+            <el-descriptions-item :label="$t('common.createdAt')">
               {{ formatDateTime(record.createdAt) }}
             </el-descriptions-item>
-            <el-descriptions-item label="更新时间">
+            <el-descriptions-item :label="$t('common.updatedAt')">
               {{ formatDateTime(record.updatedAt) }}
             </el-descriptions-item>
-            <el-descriptions-item label="授权时间">
+            <el-descriptions-item :label="$t('paymentOrders.authorizedAt')">
               {{ formatDateTime(record.authorizedAt) }}
             </el-descriptions-item>
-            <el-descriptions-item label="捕获时间">
+            <el-descriptions-item :label="$t('paymentOrders.capturedAt')">
               {{ formatDateTime(record.capturedAt) }}
             </el-descriptions-item>
           </el-descriptions>
@@ -170,12 +170,12 @@
 
         <!-- 风险评估 -->
         <div v-if="record.riskLevel" class="section">
-          <h3 class="section-title">风险评估</h3>
+          <h3 class="section-title">{{ $t('paymentOrders.riskAssessment') }}</h3>
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="风险级别">
+            <el-descriptions-item :label="$t('paymentOrders.riskLevel')">
               {{ record.riskLevel || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="评估时间">
+            <el-descriptions-item :label="$t('paymentOrders.riskEvaluationTime')">
               {{ formatDateTime(record.riskEvaluationCreatedAt) }}
             </el-descriptions-item>
           </el-descriptions>

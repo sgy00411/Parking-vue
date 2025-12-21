@@ -95,12 +95,12 @@
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8">
-            <el-form-item label="支付状态">
-              <el-select v-model="queryParams.paymentStatus" placeholder="请选择" clearable>
-                <el-option label="全部" value=""></el-option>
-                <el-option label="已支付" value="paid"></el-option>
-                <el-option label="待支付" value="pending"></el-option>
-                <el-option label="未支付" value="unpaid"></el-option>
+            <el-form-item :label="$t('vehicleRecords.paymentStatus')">
+              <el-select v-model="queryParams.paymentStatus" :placeholder="$t('common.search')" clearable>
+                <el-option :label="$t('vehicleRecords.paymentStatusOptions.all')" value=""></el-option>
+                <el-option :label="$t('vehicleRecords.paymentStatusOptions.paid')" value="paid"></el-option>
+                <el-option :label="$t('vehicleRecords.paymentStatusOptions.pending')" value="pending"></el-option>
+                <el-option :label="$t('vehicleRecords.paymentStatusOptions.unpaid')" value="unpaid"></el-option>
               </el-select>
             </el-form-item>
           </el-col>

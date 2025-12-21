@@ -29,25 +29,25 @@
               </span>
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="支付状态">
-              <el-tag v-if="record.paymentStatus === 'paid'" type="success" size="medium">已支付</el-tag>
-              <el-tag v-else-if="record.paymentStatus === 'pending'" type="warning" size="medium">待支付</el-tag>
-              <el-tag v-else-if="record.parkingFeeCents > 0" type="info" size="medium">未支付</el-tag>
+            <el-descriptions-item :label="$t('vehicleRecords.paymentStatus')">
+              <el-tag v-if="record.paymentStatus === 'paid'" type="success" size="medium">{{ $t('vehicleRecords.paymentStatusOptions.paid') }}</el-tag>
+              <el-tag v-else-if="record.paymentStatus === 'pending'" type="warning" size="medium">{{ $t('vehicleRecords.paymentStatusOptions.pending') }}</el-tag>
+              <el-tag v-else-if="record.parkingFeeCents > 0" type="info" size="medium">{{ $t('vehicleRecords.paymentStatusOptions.unpaid') }}</el-tag>
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="支付方式">
+            <el-descriptions-item :label="$t('vehicleRecords.paymentMethod')">
               <span v-if="record.squarePaymentId">
-                <el-tag type="primary" size="small">终端支付</el-tag>
+                <el-tag type="primary" size="small">{{ $t('vehicleRecords.terminalPayment') }}</el-tag>
                 <span style="margin-left: 10px; color: #909399; font-size: 12px;">
-                  支付ID: {{ record.squarePaymentId }}
+                  {{ $t('vehicleRecords.paymentIdLabel') }}: {{ record.squarePaymentId }}
                 </span>
               </span>
               <span v-else-if="record.onlinePaymentUrl && record.paymentStatus === 'paid'">
-                <el-tag type="success" size="small">在线支付</el-tag>
+                <el-tag type="success" size="small">{{ $t('vehicleRecords.onlinePayment') }}</el-tag>
               </span>
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="支付操作" v-if="record.parkingFeeCents > 0 && record.paymentStatus !== 'paid'">
+            <el-descriptions-item :label="$t('vehicleRecords.paymentActions')" v-if="record.parkingFeeCents > 0 && record.paymentStatus !== 'paid'">
               <!-- 终端支付按钮 -->
               <el-button
                 type="primary"
@@ -55,7 +55,7 @@
                 icon="el-icon-mobile-phone"
                 @click="handleTerminalPayment"
               >
-                终端支付
+                {{ $t('vehicleRecords.terminalPayment') }}
               </el-button>
               <!-- 在线支付按钮 -->
               <el-button
@@ -66,7 +66,7 @@
                 @click="handleOnlinePayment"
                 style="margin-left: 10px;"
               >
-                在线支付
+                {{ $t('vehicleRecords.onlinePayment') }}
               </el-button>
               <!-- LCD支付按钮 -->
               <el-button
@@ -76,12 +76,12 @@
                 @click="handleLcdPayment"
                 style="margin-left: 10px;"
               >
-                LCD支付
+                {{ $t('vehicleRecords.lcdPayment') }}
               </el-button>
             </el-descriptions-item>
-            <el-descriptions-item label="支付详情" v-else-if="record.paymentStatus === 'paid'">
+            <el-descriptions-item :label="$t('vehicleRecords.paymentDetails')" v-else-if="record.paymentStatus === 'paid'">
               <span style="color: #67C23A; margin-right: 15px;">
-                <i class="el-icon-circle-check"></i> 已完成支付
+                <i class="el-icon-circle-check"></i> {{ $t('vehicleRecords.paymentCompleted') }}
               </span>
               <el-button
                 v-if="record.squarePaymentId"
@@ -91,17 +91,17 @@
                 @click="viewPaymentDetail"
                 style="color: #409EFF;"
               >
-                查看支付详情
+                {{ $t('vehicleRecords.viewPaymentDetails') }}
               </el-button>
             </el-descriptions-item>
-            <el-descriptions-item label="操作">
+            <el-descriptions-item :label="$t('common.actions')">
               <el-button
                 type="success"
                 size="small"
                 icon="el-icon-unlock"
                 @click="handleOpenGate"
               >
-                开闸
+                {{ $t('vehicleRecords.openGate') }}
               </el-button>
             </el-descriptions-item>
             <el-descriptions-item :label="$t('vehicleRecords.createdAt')">
@@ -276,11 +276,11 @@ export default {
     async handleTerminalPayment() {
       try {
         const confirmResult = await this.$confirm(
-          `确认发起终端支付?\n金额: $${(this.record.parkingFeeCents / 100).toFixed(2)}\n\n是否同时生成在线支付链接?`,
-          '终端支付',
+          `${this.$t('vehicleRecords.confirmTerminalPayment')}\n${this.$t('vehicleRecords.amount')}: $${(this.record.parkingFeeCents / 100).toFixed(2)}\n\n${this.$t('vehicleRecords.generateOnlineLink')}`,
+          this.$t('vehicleRecords.terminalPayment'),
           {
-            confirmButtonText: '仅终端支付',
-            cancelButtonText: '终端+在线',
+            confirmButtonText: this.$t('vehicleRecords.terminalOnly'),
+            cancelButtonText: this.$t('vehicleRecords.terminalAndOnline'),
             distinguishCancelAndClose: true,
             type: 'info'
           }
@@ -298,7 +298,7 @@ export default {
 
         const loading = this.$loading({
           lock: true,
-          text: '正在发起支付...',
+          text: this.$t('common.loading'),
           spinner: 'el-icon-loading',
           background: 'rgba(0, 0, 0, 0.7)'
         })
@@ -311,9 +311,9 @@ export default {
               this.$message.success(response.message)
             } else {
               if (response.terminal.success) {
-                this.$message.success('终端支付已发起')
+                this.$message.success(this.$t('vehicleRecords.terminalPaymentInitiated'))
               } else {
-                this.$message.error('终端支付发起失败')
+                this.$message.error(this.$t('common.failed'))
               }
             }
 
@@ -398,7 +398,7 @@ export default {
 
         const loading = this.$loading({
           lock: true,
-          text: '正在发送开闸指令...',
+          text: this.$t('common.loading'),
           spinner: 'el-icon-loading',
           background: 'rgba(0, 0, 0, 0.7)'
         })
@@ -407,16 +407,16 @@ export default {
           const response = await openBarrierGate(this.record.id)
 
           if (response.success) {
-            this.$message.success('开闸指令已发送')
+            this.$message.success(this.$t('vehicleRecords.gateCommandSent'))
           } else {
-            this.$message.error(response.message || '开闸指令发送失败')
+            this.$message.error(response.message || this.$t('common.failed'))
           }
         } finally {
           loading.close()
         }
       } catch (error) {
         console.error('开闸失败:', error)
-        this.$message.error('开闸失败: ' + (error.message || '未知错误'))
+        this.$message.error(this.$t('common.failed') + ': ' + (error.message || this.$t('common.loadFailed')))
       }
     },
     getSnapshotUrl(parkingLotCode, filename) {
