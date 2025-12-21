@@ -61,3 +61,13 @@ export function sendLcdPayment(id) {
     method: 'post'
   })
 }
+
+/**
+ * 手动开闸 - 发送MQTT开闸指令
+ */
+export function openBarrierGate(id) {
+  return request({
+    url: `/vehicle-records/${id}/open-gate`,
+    method: 'post'
+  })
+}

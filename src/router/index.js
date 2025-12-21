@@ -28,6 +28,16 @@ const routes = [
     path: '/square-devices',
     name: 'SquareDevices',
     component: () => import('@/views/SquareDevices.vue')
+  },
+  {
+    path: '/payment-orders',
+    name: 'PaymentOrders',
+    component: () => import('@/views/PaymentOrders.vue')
+  },
+  {
+    path: '/payment-orders/:id',
+    name: 'PaymentOrderDetail',
+    component: () => import('@/views/PaymentOrderDetail.vue')
   }
 ]
 

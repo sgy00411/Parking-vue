@@ -19,11 +19,12 @@
         </div>
       </el-header>
       <el-container>
-        <el-aside width="200px">
+        <el-aside :width="isCollapse ? '64px' : '200px'">
           <el-menu
             :default-active="activeMenu"
             class="el-menu-vertical"
             router
+            :collapse="isCollapse"
             background-color="#304156"
             text-color="#bfcbd9"
             active-text-color="#409EFF">
@@ -45,9 +46,13 @@
               </template>
               <el-menu-item index="/square-locations">{{ $t('nav.locationList') }}</el-menu-item>
               <el-menu-item index="/square-devices">{{ $t('nav.deviceManagement') }}</el-menu-item>
+              <el-menu-item index="/payment-orders">Square支付记录</el-menu-item>
             </el-submenu>
           </el-menu>
         </el-aside>
+        <div class="collapse-btn" @click="toggleCollapse" :style="{ left: isCollapse ? '64px' : '200px' }">
+          <i :class="isCollapse ? 'el-icon-s-unfold' : 'el-icon-s-fold'"></i>
+        </div>
         <el-main>
           <router-view/>
         </el-main>
@@ -59,6 +64,11 @@
 <script>
 export default {
   name: 'App',
+  data() {
+    return {
+      isCollapse: false
+    }
+  },
   computed: {
     activeMenu() {
       return this.$route.path
@@ -69,6 +79,9 @@ export default {
       this.$i18n.locale = language
       this.$store.dispatch('setLanguage', language)
       this.$message.success(this.$t('common.confirm'))
+    },
+    toggleCollapse() {
+      this.isCollapse = !this.isCollapse
     }
   }
 }
@@ -138,6 +151,27 @@ export default {
   background-color: #304156;
   height: calc(100vh - 60px);
   overflow-y: auto;
+  transition: width 0.3s;
+}
+
+.collapse-btn {
+  position: absolute;
+  top: 70px;
+  width: 20px;
+  height: 40px;
+  background-color: #409EFF;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 0 4px 4px 0;
+  z-index: 1000;
+  transition: left 0.3s;
+}
+
+.collapse-btn:hover {
+  background-color: #66b1ff;
 }
 
 .el-menu-vertical {

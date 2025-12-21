@@ -79,10 +79,30 @@
                 LCD支付
               </el-button>
             </el-descriptions-item>
-            <el-descriptions-item label="支付状态" v-else-if="record.paymentStatus === 'paid'">
-              <span style="color: #67C23A;">
+            <el-descriptions-item label="支付详情" v-else-if="record.paymentStatus === 'paid'">
+              <span style="color: #67C23A; margin-right: 15px;">
                 <i class="el-icon-circle-check"></i> 已完成支付
               </span>
+              <el-button
+                v-if="record.squarePaymentId"
+                type="text"
+                size="small"
+                icon="el-icon-document"
+                @click="viewPaymentDetail"
+                style="color: #409EFF;"
+              >
+                查看支付详情
+              </el-button>
+            </el-descriptions-item>
+            <el-descriptions-item label="操作">
+              <el-button
+                type="success"
+                size="small"
+                icon="el-icon-unlock"
+                @click="handleOpenGate"
+              >
+                开闸
+              </el-button>
             </el-descriptions-item>
             <el-descriptions-item :label="$t('vehicleRecords.createdAt')">
               {{ formatDateTime(record.createdAt) }}
@@ -216,7 +236,8 @@
 </template>
 
 <script>
-import { getVehicleRecordDetail, getSnapshotUrl, initiatePayment, sendLcdPayment } from '@/api/vehicleRecords'
+import { getVehicleRecordDetail, getSnapshotUrl, initiatePayment, sendLcdPayment, openBarrierGate } from '@/api/vehicleRecords'
+import axios from 'axios'
 
 export default {
   name: 'VehicleRecordDetail',
@@ -359,8 +380,62 @@ export default {
         this.$message.error('LCD支付失败: ' + (error.message || '未知错误'))
       }
     },
+    async handleOpenGate() {
+      try {
+        const confirmResult = await this.$confirm(
+          '确认手动开闸放行车辆？',
+          '人工开闸',
+          {
+            confirmButtonText: '确认开闸',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        ).catch(() => false)
+
+        if (!confirmResult) {
+          return
+        }
+
+        const loading = this.$loading({
+          lock: true,
+          text: '正在发送开闸指令...',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+
+        try {
+          const response = await openBarrierGate(this.record.id)
+
+          if (response.success) {
+            this.$message.success('开闸指令已发送')
+          } else {
+            this.$message.error(response.message || '开闸指令发送失败')
+          }
+        } finally {
+          loading.close()
+        }
+      } catch (error) {
+        console.error('开闸失败:', error)
+        this.$message.error('开闸失败: ' + (error.message || '未知错误'))
+      }
+    },
     getSnapshotUrl(parkingLotCode, filename) {
       return getSnapshotUrl(parkingLotCode, filename)
+    },
+    async viewPaymentDetail() {
+      try {
+        // 通过vehicle record id查找payment order
+        const response = await axios.get(`/api/payment-orders/by-vehicle-record/${this.record.id}`)
+        if (response.data.success && response.data.data) {
+          // 跳转到支付详情页面
+          this.$router.push(`/payment-orders/${response.data.data.id}`)
+        } else {
+          this.$message.error('未找到支付记录')
+        }
+      } catch (error) {
+        console.error('查询支付记录失败:', error)
+        this.$message.error('查询支付记录失败')
+      }
     },
     formatDateTime(datetime) {
       if (!datetime) return '-'

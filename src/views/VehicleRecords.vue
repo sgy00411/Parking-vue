@@ -95,6 +95,16 @@
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8">
+            <el-form-item label="支付状态">
+              <el-select v-model="queryParams.paymentStatus" placeholder="请选择" clearable>
+                <el-option label="全部" value=""></el-option>
+                <el-option label="已支付" value="paid"></el-option>
+                <el-option label="待支付" value="pending"></el-option>
+                <el-option label="未支付" value="unpaid"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="8">
             <el-form-item>
               <el-button type="primary" icon="el-icon-search" @click="handleSearch">{{ $t('common.search') }}</el-button>
               <el-button icon="el-icon-refresh" @click="handleReset">{{ $t('common.reset') }}</el-button>
@@ -109,6 +119,7 @@
       <el-table
         v-loading="loading"
         :data="tableData"
+        :row-class-name="tableRowClassName"
         stripe
         border
         style="width: 100%"
@@ -124,7 +135,9 @@
         </el-table-column>
         <el-table-column :label="$t('vehicleRecords.plateNumber')" width="140">
           <template slot-scope="scope">
-            {{ scope.row.entryPlateNumber || scope.row.exitPlateNumber || '-' }}
+            <span :style="scope.row.paymentStatus === 'paid' ? 'color: #67C23A; font-weight: bold;' : ''">
+              {{ scope.row.entryPlateNumber || scope.row.exitPlateNumber || '-' }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column :label="$t('vehicleRecords.entryTime')" width="180">
@@ -154,7 +167,7 @@
         </el-table-column>
         <el-table-column label="停车费" width="100">
           <template slot-scope="scope">
-            <span v-if="scope.row.parkingFeeCents">
+            <span v-if="scope.row.parkingFeeCents" :style="scope.row.paymentStatus === 'paid' ? 'color: #67C23A; font-weight: bold;' : 'color: #E6A23C; font-weight: bold;'">
               ${{ (scope.row.parkingFeeCents / 100).toFixed(2) }}
             </span>
             <span v-else>-</span>
@@ -229,7 +242,8 @@ export default {
         plateNumber: '',
         parkingLotCode: '',
         startDate: '',
-        endDate: ''
+        endDate: '',
+        paymentStatus: ''
       },
       statistics: {
         total: 0,
@@ -284,7 +298,8 @@ export default {
         plateNumber: '',
         parkingLotCode: '',
         startDate: '',
-        endDate: ''
+        endDate: '',
+        paymentStatus: ''
       }
       this.loadData()
       this.loadStatistics()
@@ -299,6 +314,12 @@ export default {
     },
     handleViewDetail(id) {
       this.$router.push(`/vehicle-records/${id}`)
+    },
+    tableRowClassName({ row }) {
+      if (row.paymentStatus === 'paid') {
+        return 'paid-row'
+      }
+      return ''
     },
     async handleTerminalPayment(row) {
       try {
@@ -455,5 +476,14 @@ export default {
 .pagination {
   margin-top: 20px;
   text-align: right;
+}
+
+/* 已支付行样式 */
+.el-table >>> .paid-row {
+  background-color: #f0f9ff !important;
+}
+
+.el-table >>> .paid-row:hover > td {
+  background-color: #e6f7ff !important;
 }
 </style>
