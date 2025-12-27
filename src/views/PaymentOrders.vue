@@ -56,6 +56,14 @@
         style="width: 100%"
         @row-click="handleRowClick">
         <el-table-column prop="id" label="ID" width="80" align="center"></el-table-column>
+        <el-table-column label="出场记录ID" width="120" align="center">
+          <template slot-scope="scope">
+            <el-link v-if="scope.row.vehicleRecordId" type="primary" @click.stop="goToVehicleRecord(scope.row.vehicleRecordId)">
+              {{ scope.row.vehicleRecordId }}
+            </el-link>
+            <span v-else style="color: #909399;">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="squarePaymentId" label="支付ID" min-width="200" show-overflow-tooltip></el-table-column>
         <el-table-column prop="orderId" label="订单ID" min-width="200" show-overflow-tooltip></el-table-column>
         <el-table-column label="支付金额" width="120" align="center">
@@ -200,6 +208,9 @@ export default {
     },
     viewDetail(id) {
       this.$router.push(`/payment-orders/${id}`)
+    },
+    goToVehicleRecord(id) {
+      this.$router.push(`/vehicle-records/${id}`)
     },
     formatDateTime(datetime) {
       if (!datetime) return '-'
